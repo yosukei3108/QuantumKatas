@@ -286,7 +286,3 @@ TSWLatexianTemp*
 
 # Python build files
 __pycache__
-
-# added by vscode
-.vscode/launch.json
-.vscode/tasks.json
