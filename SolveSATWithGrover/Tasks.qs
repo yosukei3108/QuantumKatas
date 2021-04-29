@@ -103,7 +103,7 @@ namespace Quantum.Kata.GroversAlgorithm {
     // 
     // For general SAT problems, f(x) is represented as a conjunction (an AND operation) of several clauses on N variables, 
     // and each clause is a disjunction (an OR operation) of one or several variables or negated variables:
-    //      clause(x) = ∨ₖ yᵢₖ, where yᵢₖ = either xⱼ or ¬xⱼ for some j in {0, ..., N-1}
+    //      clause(x) = ∨ₖ yₖ, where yₖ = either xⱼ or ¬xⱼ for some j in {0, ..., N-1}
     // 
     // For example, one of the possible clauses on two variables is 
     //      clause(x) = x₀ ∨ ¬x₁
@@ -213,7 +213,8 @@ namespace Quantum.Kata.GroversAlgorithm {
     // This task is not covered by a test and allows you to experiment with running the algorithm.
     //
     // If you want to learn Grover's algorithm itself, try doing the GroversAlgorithm kata first.
-    operation T31_E2E_GroversAlgorithm_Test () : Unit {
+    @Test("QuantumSimulator")
+    operation T31_E2E_GroversAlgorithm () : Unit {
 
         // Hint: Experiment with SAT instances with different number of solutions and the number of algorithm iterations 
         // to see how the probability of the algorithm finding the correct answer changes depending on these two factors.

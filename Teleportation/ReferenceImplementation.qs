@@ -18,8 +18,7 @@ namespace Quantum.Kata.Teleportation {
     //////////////////////////////////////////////////////////////////
     
     // Task 1.1. Entangled pair
-    operation Entangle_Reference (qAlice : Qubit, qBob : Qubit) : Unit
-    is Adj {        
+    operation Entangle_Reference (qAlice : Qubit, qBob : Qubit) : Unit is Adj {        
         H(qAlice);
         CNOT(qAlice, qBob);
     }
@@ -57,16 +56,15 @@ namespace Quantum.Kata.Teleportation {
     
     // Task 1.5. Prepare the message specified and send it (Alice's task)
     operation PrepareAndSendMessage_Reference (qAlice : Qubit, basis : Pauli, state : Bool) : (Bool, Bool) {
-        using (message = Qubit()) {
-            if (state) {
-                X(message);
-            }
-            
-            PrepareQubit(basis, message);
-            let classicalBits = SendMessage_Reference(qAlice, message);
-            Reset(message);
-            return classicalBits;
+        use message = Qubit();
+        if (state) {
+            X(message);
         }
+            
+        PreparePauliEigenstate(basis, message);
+        let classicalBits = SendMessage_Reference(qAlice, message);
+        Reset(message);
+        return classicalBits;
     }
     
     
@@ -144,22 +142,24 @@ namespace Quantum.Kata.Teleportation {
     //////////////////////////////////////////////////////////////////
     
     // Task 4.1. Entangled trio
-    operation EntangleThreeQubits_Reference (qAlice : Qubit, qBob : Qubit, qCharlie : Qubit) : Unit
-    is Adj {
+    operation EntangleThreeQubits_Reference (qAlice : Qubit, qBob : Qubit, qCharlie : Qubit) : Unit is Adj {
+        // Starting with |000⟩
         
-        H(qAlice);
         H(qBob);
-        X(qCharlie);
 
-        CCNOT(qAlice, qBob, qCharlie);
+        // now state is: 1/sqrt(2) (|000⟩ + |010⟩)
 
-        X(qAlice);
-        X(qBob);
+        CNOT(qBob, qCharlie);
 
-        CCNOT(qAlice, qBob, qCharlie);
+        // state: 1/sqrt(2) (|000⟩ + |011⟩)
 
-        X(qAlice);
-        X(qBob);
+        H(qAlice);
+
+        // state: 1/2 (|000⟩ + |011⟩ + |100⟩ + |111⟩)
+
+        CNOT(qAlice, qCharlie);
+
+        // final state:  1/2 (|000⟩ + |011⟩ + |101⟩ + |110⟩)
     }
     
     
@@ -170,8 +170,7 @@ namespace Quantum.Kata.Teleportation {
         }
         
         if (b2) {
-            Z(qCharlie);
-            Y(qCharlie);
+            X(qCharlie);
         }
         
         if (b3) {

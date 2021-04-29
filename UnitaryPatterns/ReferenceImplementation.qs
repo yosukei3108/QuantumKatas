@@ -17,9 +17,7 @@ namespace Quantum.Kata.UnitaryPatterns {
     
     
     // Task 1. Main diagonal
-    operation MainDiagonal_Reference (qs : Qubit[]) : Unit {
-        
-    }
+    operation MainDiagonal_Reference (qs : Qubit[]) : Unit {}
     
     
     // Task 2. All-non-zero matrix
@@ -62,7 +60,7 @@ namespace Quantum.Kata.UnitaryPatterns {
     // Task 8. 2⨯2 chessboard pattern
     operation ChessPattern2x2_Reference (qs : Qubit[]) : Unit {
         H(Head(qs));
-        for (i in 2 .. Length(qs) - 1) {
+        for i in 2 .. Length(qs) - 1 {
             H(qs[i]);
         }
     }
@@ -93,9 +91,9 @@ namespace Quantum.Kata.UnitaryPatterns {
 
     // Task 11. X-Wing fighter
     operation XWing_Fighter_Reference (qs : Qubit[]) : Unit {
-        ApplyToEach(CNOT(qs[0], _), qs[1 .. Length(qs) - 1]);
+        ApplyToEach(CNOT(qs[0], _), qs[1...]);
         H(qs[0]);
-        ApplyToEach(CNOT(qs[0], _), qs[1 .. Length(qs) - 1]);
+        ApplyToEach(CNOT(qs[0], _), qs[1...]);
     }
     
 
@@ -111,26 +109,23 @@ namespace Quantum.Kata.UnitaryPatterns {
     // Helper operation: decrement a little-endian register
     operation Decrement (qs : Qubit[]) : Unit {
         X(qs[0]);
-        for (i in 1..Length(qs)-1) {
-            Controlled X(qs[0..i-1], qs[i]);
+        for i in 1..Length(qs)-1 {
+            Controlled X(qs[...i-1], qs[i]);
         }
     }
     
     // Helper operation: antidiagonal 
-    operation Reflect (qs : Qubit[]) : Unit
-    is Ctl {
-        ApplyToEachC(X, qs);
+    operation Reflect (qs : Qubit[]) : Unit is Adj + Ctl {
+        ApplyToEachCA(X, qs);
     }
     
     // Main operation for Task 13
     operation TIE_Fighter_Reference (qs : Qubit[]) : Unit {
         let n = Length(qs);
-        X(qs[n-1]);
-        Controlled Reflect([qs[n-1]], qs[0..(n-2)]);
-        X(qs[n-1]);
-        Decrement(qs[0..(n-2)]);
+        (ControlledOnInt(0, Reflect))([qs[n-1]], qs[...(n-2)]);
+        Decrement(qs[...(n-2)]);
         H(qs[n-1]);
-        Controlled Reflect([qs[n-1]], qs[0..(n-2)]);
+        Controlled Reflect([qs[n-1]], qs[...(n-2)]);
     }
     
 
@@ -145,9 +140,7 @@ namespace Quantum.Kata.UnitaryPatterns {
         CNOT(qs[1], qs[2]); 
         CNOT(qs[2], qs[0]); 
         CCNOT(qs[0], qs[2], qs[1]); 
-        X(qs[2]);
-        Controlled H([qs[2]], qs[1]);
-        X(qs[2]);
+        (ControlledOnInt(0, H))([qs[2]], qs[1]);
         H(qs[0]);
         CNOT(qs[1], qs[2]);         
     }
@@ -157,7 +150,7 @@ namespace Quantum.Kata.UnitaryPatterns {
 
     // Helper function for Embedding_Perm: finds first location where bit strings differ. 
     function FirstDiff (bits1 : Bool[], bits2 : Bool[]) : Int {
-        for (i in 0 .. Length(bits1)-1) {
+        for i in 0 .. Length(bits1)-1 {
             if (bits1[i] != bits2[i]) {
                 return i;
             }
@@ -183,7 +176,7 @@ namespace Quantum.Kata.UnitaryPatterns {
         }
         
         // iterate through the bit strings again, setting the final state of qubits
-        for (i in 0..n-1) {
+        for i in 0..n-1 {
             if (bits1[i] == bits2[i]) {
                 // if two bits are the same, set both to 1 using X or nothing
                 if (not bits1[i]) {
@@ -193,9 +186,7 @@ namespace Quantum.Kata.UnitaryPatterns {
                 // if two bits are different, set both to 1 using CNOT
                 if (i > diff) {
                     if (not bits1[i]) {
-                        X(qs[diff]);
-                        CNOT(qs[diff], qs[i]);
-                        X(qs[diff]);
+                        (ControlledOnInt(0,X))([qs[diff]], qs[i]);
                     }
                     if (not bits2[i]) {
                         CNOT(qs[diff], qs[i]);
@@ -213,16 +204,19 @@ namespace Quantum.Kata.UnitaryPatterns {
     
     // Helper function: apply the 2⨯2 unitary operator at the sub-matrix given by indices for 2 rows/columns
     operation Embed_2x2_Operator (U : (Qubit => Unit is Ctl), index1 : Int, index2 : Int, qs : Qubit[]) : Unit {
-        Embedding_Perm(index1, index2, qs);
-        Controlled U(Most(qs), Tail(qs));
-        Adjoint Embedding_Perm(index1, index2, qs);
+        within {
+            Embedding_Perm(index1, index2, qs);
+        } 
+        apply {
+            Controlled U(Most(qs), Tail(qs));
+        }
     }
 
     
     // Putting everything together: the target pattern is produced by a sequence of controlled H gates. 
     operation Hessenberg_Matrix_Reference (qs : Qubit[]) : Unit {
         let n = Length(qs);
-        for (i in 2^n - 2 .. -1 .. 0) {     
+        for i in 2^n - 2 .. -1 .. 0 {     
             Embed_2x2_Operator(H, i, i+1, qs);
         }
     }

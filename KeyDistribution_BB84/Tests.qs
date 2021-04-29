@@ -9,30 +9,32 @@
 
 namespace Quantum.Kata.KeyDistribution {
     
+    open Microsoft.Quantum.Arrays;
     open Microsoft.Quantum.Intrinsic;
     open Microsoft.Quantum.Diagnostics;
     open Microsoft.Quantum.Math;
     open Microsoft.Quantum.Convert;
+    open Microsoft.Quantum.Random;
     
     
     //////////////////////////////////////////////////////////////////
     // Part I. Preparation
     //////////////////////////////////////////////////////////////////
 
-    operation T11_DiagonalPolarization_Test () : Unit {
-        for (i in 1 .. 5) {
-            AssertOperationsEqualReferenced(i, DiagonalPolarization, DiagonalPolarization_Reference);
+    @Test("QuantumSimulator")
+    operation T11_DiagonalBasis () : Unit {
+        for i in 1 .. 5 {
+            AssertOperationsEqualReferenced(i, DiagonalBasis, DiagonalBasis_Reference);
         }
     }
 
-
-    operation T12_EqualSuperposition_Test () : Unit {
-        using (q = Qubit()) {
-            EqualSuperposition(q);
-            DumpMachine(());
-            AssertProb([PauliZ], [q], One, 0.5, "Measuring should produce 0 and 1 with 50/50 chance.", 1e-5);
-            Reset(q);
-        }
+    @Test("QuantumSimulator")
+    operation T12_EqualSuperposition () : Unit {
+        use q = Qubit();
+        EqualSuperposition(q);
+        DumpMachine();
+        AssertMeasurementProbability([PauliZ], [q], One, 0.5, "Measuring should produce 0 and 1 with 50/50 chance.", 1e-5);
+        Reset(q);
     }
   
 
@@ -40,22 +42,18 @@ namespace Quantum.Kata.KeyDistribution {
     // Part II. BB84 Protocol
     //////////////////////////////////////////////////////////////////
 
-    operation T21_RandomArray_Test () : Unit {
+    @Test("QuantumSimulator")
+    operation T21_RandomArray () : Unit {
         // The test checks that the operation does not return always the same array.
-        let N = 7;
-        let arr1 = RandomArray(N);
-        Fact(N == Length(arr1), "Returned array should be of the given length");
+        let N = 30;
+        let randomArrays = ForEach(RandomArray, [N, N, N]);
 
-        let arr2 = RandomArray(N);
-        Fact(N == Length(arr2), "Returned array should be of the given length");
-        Fact(BoolArrayAsInt(arr1) != BoolArrayAsInt(arr2), 
-            "Random generation should not return equal arrays. Run again to see if problem goes away");
+        for array in randomArrays {
+            Fact(Length(array) == N, "Returned array should be of the given length");
+        }
 
-        let arr3 = RandomArray(N);
-        Fact(N == Length(arr3), "Returned array should be of the given length");
-        Fact(BoolArrayAsInt(arr2) != BoolArrayAsInt(arr3), 
-            "Random generation should not return equal arrays. Run again to see if problem goes away");
-        Fact(BoolArrayAsInt(arr1) != BoolArrayAsInt(arr3), 
+        let randomInts = Mapped(BoolArrayAsInt, randomArrays);
+        Fact(randomInts[0] != randomInts[1] or randomInts[1] != randomInts[2] or randomInts[0] != randomInts[2], 
             "Random generation should not return equal arrays. Run again to see if problem goes away");
     }
     
@@ -66,39 +64,38 @@ namespace Quantum.Kata.KeyDistribution {
         return (RandomArray_Reference(N), RandomArray_Reference(N));
     }
 
-
-    operation T22_PrepareAlicesQubits_Test () : Unit {
-        for (N in 2 .. 10) {
+    @Test("QuantumSimulator")
+    operation T22_PrepareAlicesQubits () : Unit {
+        for N in 2 .. 10 {
             let (bases, state) = GenerateRandomState(N);
-            using (qs = Qubit[N]) {
-                PrepareAlicesQubits(qs, bases, state);
-                Adjoint PrepareAlicesQubits_Reference(qs, bases, state);
-                AssertAllZero(qs);
-            }
+            use qs = Qubit[N];
+            PrepareAlicesQubits(qs, bases, state);
+            Adjoint PrepareAlicesQubits_Reference(qs, bases, state);
+            AssertAllZero(qs);
         }
     }
 
 
     // ------------------------------------------------------
-    operation T23_MeasureBobsQubits_Test () : Unit {
-        for (N in 2 .. 10) {
+    @Test("QuantumSimulator")
+    operation T23_MeasureBobsQubits () : Unit {
+        for N in 2 .. 10 {
             let (bases, state) = GenerateRandomState(N);
-            using (qs = Qubit[N]) {
-                // Prepare the input qubits in the given state
-                PrepareAlicesQubits_Reference(qs, bases, state);
-                // Measure the qubits in the bases used for preparation - this should return encoded state
-                let result = MeasureBobsQubits(qs, bases);
-                Fact(N == Length(result), "The returned array should have the same length as the inputs");
-                Fact(BoolArrayAsInt(state) == BoolArrayAsInt(result), "Some of the measurements were done in the wrong basis");
-                ResetAll(qs);
-            }
+            use qs = Qubit[N];
+            // Prepare the input qubits in the given state
+            PrepareAlicesQubits_Reference(qs, bases, state);
+            // Measure the qubits in the bases used for preparation - this should return encoded state
+            let result = MeasureBobsQubits(qs, bases);
+            Fact(N == Length(result), "The returned array should have the same length as the inputs");
+            Fact(BoolArrayAsInt(state) == BoolArrayAsInt(result), "Some of the measurements were done in the wrong basis");
         }
     }
 
 
     // ------------------------------------------------------
-    operation T24_GenerateSharedKey_Test () : Unit {
-        for (N in 10 .. 30) {
+    @Test("QuantumSimulator")
+    operation T24_GenerateSharedKey () : Unit {
+        for N in 10 .. 30 {
             let basesAlice = RandomArray_Reference(N);
             let (basesBob, bitsBob) = GenerateRandomState(N);
             let expected = GenerateSharedKey_Reference(basesAlice, basesBob, bitsBob);
@@ -111,14 +108,28 @@ namespace Quantum.Kata.KeyDistribution {
 
 
     // ------------------------------------------------------
-    operation T25_CheckKeysMatch_Test () : Unit {
-        for (i in 10 .. 30) {
-            let (key1, key2) = GenerateRandomState(i);
-            let threshold = RandomInt(50) + 50;
-            let expected = CheckKeysMatch_Reference(key1, key2, threshold);
-            let result = CheckKeysMatch(key1, key2, threshold);
+    @Test("QuantumSimulator")
+    operation T25_CheckKeysMatch () : Unit {
+        // Hard-coded test to validate that the solution checks the right relation with error rate
+        mutable key1 = ConstantArray(10, false);
+        mutable key2 = key1 w/ 3 <- true;
+        mutable errorRate = 15;
+        mutable result = CheckKeysMatch(key1, key2, errorRate);
+        // 10% mismatch with 15% error rate should pass
+        Fact(result, $"Check for {key1} vs {key2} with errorRate {errorRate}% should return {true}, returned {result}");
 
-            Fact(expected == result, $"Check for {key1} vs {key2} with threshold {threshold}% should return {expected}, returned {result}");
+        set key2 w/= 5 <- true;
+        set result = CheckKeysMatch(key1, key2, errorRate);
+        // 20% mismatch with 15% error rate should fail
+        Fact(not result, $"Check for {key1} vs {key2} with errorRate {errorRate}% should return {false}, returned {result}");
+
+        for i in 10 .. 30 {
+            set (key1, key2) = GenerateRandomState(i);
+            set errorRate = DrawRandomInt(0, 49);
+            let expected = CheckKeysMatch_Reference(key1, key2, errorRate);
+            set result = CheckKeysMatch(key1, key2, errorRate);
+
+            Fact(expected == result, $"Check for {key1} vs {key2} with errorRate {errorRate}% should return {expected}, returned {result}");
         }
     }
 
@@ -127,37 +138,37 @@ namespace Quantum.Kata.KeyDistribution {
     // Part III. Eavesdropping
     //////////////////////////////////////////////////////////////////
 
-    operation T31_Eavesdrop_Test () : Unit {
-        using (q = Qubit()) {
-            // q = 0, Real value: b = rectangular, Input: b = rectangular
-            let res00 = Eavesdrop(q, false);
-            Fact(res00 == false, $"Incorrect result: {res00} (expected False)");
-            // check that the qubit was restored to its state
-            AssertQubit(Zero, q);
+    @Test("QuantumSimulator")
+    operation T31_Eavesdrop () : Unit {
+        use q = Qubit();
+        // q = 0, Real value: b = rectangular, Input: b = rectangular
+        let res00 = Eavesdrop(q, false);
+        Fact(res00 == false, $"Incorrect result: {res00} (expected False)");
+        // check that the qubit was restored to its state
+        AssertQubit(Zero, q);
 
-            // q = 0, Real value: b = diagonal, Input: b = diagonal 
-            H(q);
-            let res01 = Eavesdrop(q, true);
-            Fact(res01 == false, $"Incorrect result: {res01} (expected False)");
-            // check that the qubit was restored to its state
-            H(q);
-            AssertQubit(Zero, q);
+        // q = 0, Real value: b = diagonal, Input: b = diagonal 
+        H(q);
+        let res01 = Eavesdrop(q, true);
+        Fact(res01 == false, $"Incorrect result: {res01} (expected False)");
+        // check that the qubit was restored to its state
+        H(q);
+        AssertQubit(Zero, q);
 
-            // q = 1, Real value: b = rectangular, Input: b = rectangular 
-            X(q);
-            let res10 = Eavesdrop(q, false);
-            Fact(res10 == true, $"Incorrect result: {res10} (expected True)");
-            AssertQubit(One, q);
-            Reset(q);
+        // q = 1, Real value: b = rectangular, Input: b = rectangular 
+        X(q);
+        let res10 = Eavesdrop(q, false);
+        Fact(res10 == true, $"Incorrect result: {res10} (expected True)");
+        AssertQubit(One, q);
+        Reset(q);
 
-            // q = 1, Real value: b = diagonal, Input: b = diagonal 
-            X(q);
-            H(q);
-            let res11 = Eavesdrop(q, true);
-            Fact(res11 == true, $"Incorrect result: {res11} (expected True)");
-            H(q);
-            AssertQubit(One, q);
-            Reset(q);
-        }
+        // q = 1, Real value: b = diagonal, Input: b = diagonal 
+        X(q);
+        H(q);
+        let res11 = Eavesdrop(q, true);
+        Fact(res11 == true, $"Incorrect result: {res11} (expected True)");
+        H(q);
+        AssertQubit(One, q);
+        Reset(q);
     }
 }

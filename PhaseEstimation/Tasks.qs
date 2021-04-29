@@ -8,6 +8,7 @@ namespace Quantum.Kata.PhaseEstimation {
     open Microsoft.Quantum.Diagnostics;
     open Microsoft.Quantum.Convert;
     open Microsoft.Quantum.Math;
+    open Microsoft.Quantum.Measurement;
 
     
     //////////////////////////////////////////////////////////////////
@@ -41,8 +42,7 @@ namespace Quantum.Kata.PhaseEstimation {
     // Goal: 
     //      Prepare one of the eigenstates of Z gate (which are the same as eigenstates of S or T gates):
     //      eigenstate |0⟩ if state = 0, or eigenstate |1⟩ if state = 1.
-    operation Eigenstates_ZST (q : Qubit, state : Int) : Unit
-    is Adj {
+    operation Eigenstates_ZST (q : Qubit, state : Int) : Unit is Adj {
         // ...
     }
 
@@ -96,7 +96,8 @@ namespace Quantum.Kata.PhaseEstimation {
     // Goal: Use your QPE implementation from task 1.4 to run quantum phase estimation 
     //       on several simple unitaries and their eigenstates.
     // This task is not covered by a test and allows you to experiment with running the algorithm.
-    operation T15_E2E_QPE_Test () : Unit {
+    @Test("QuantumSimulator")
+    operation T15_E2E_QPE () : Unit {
         // ...
     }
 

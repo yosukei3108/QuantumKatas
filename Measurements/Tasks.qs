@@ -42,7 +42,7 @@ namespace Quantum.Kata.Measurements {
         // equals One - either directly or using library function IsResultOne.
         //
         // Replace the returned expression with (M(q) == One).
-        // Then rebuild the project and rerun the tests - T101_IsQubitOne_Test should now pass!
+        // Then rebuild the project and rerun the tests - T101_IsQubitOne should now pass!
 
         return false;
     }
@@ -134,8 +134,8 @@ namespace Quantum.Kata.Measurements {
     //      1) N qubits which are guaranteed to be
     //         in one of the two superposition states described by the given arrays of bit strings.
     //      2) two arrays of bit strings represented as Bool[][]s.
-    //         Each of the arrays has a size M ⨯ N and consists of M bit strings of length N
-    //         (the first index is the index of the bit string, the second - the index of the qubit).
+    //         The arrays have dimensions M₁ ⨯ N and M₂ ⨯ N respectively, where N is the number of
+    //         qubits and M₁ and M₂ are the numbers of bit strings in each array. Note that in general M₁ ≠ M₂.
     //         An array of bit strings [b₁, ..., bₘ] defines a state that is
     //         an equal superposition of all basis states defined by bit strings b₁, ..., bₘ.
     //         For example, an array of bit strings [[false, true, false], [false, true, true]]
@@ -166,7 +166,8 @@ namespace Quantum.Kata.Measurements {
     //      1) N qubits which are guaranteed to be
     //         in one of the two superposition states described by the given arrays of bit strings.
     //      2) two arrays of bit strings represented as Bool[][]s.
-    //         The arrays describe the superposition states in the same way as in the previous task.
+    //         The arrays describe the superposition states in the same way as in the previous task,
+    //         i.e., they have dimensions M₁ ⨯ N and M₂ ⨯ N respectively, N being the number of qubits.
     //
     // Output: 0 if qubits were in the superposition state described by the first array,
     //         1 if they were in the superposition state described by the second array.
@@ -313,7 +314,6 @@ namespace Quantum.Kata.Measurements {
     //  - must correctly identify |+⟩ state as 1 in at least 10% of the cases.
     //
     // The state of the qubit at the end of the operation does not matter.
-    // You are allowed to use ancilla qubit(s).
     operation IsQubitPlusZeroOrInconclusiveSimpleUSD (q : Qubit) : Int {
         // ...
         return -2;
@@ -331,6 +331,7 @@ namespace Quantum.Kata.Measurements {
     //         0 or 2 if the qubit was in the |B⟩ state,
     //         0 or 1 if the qubit was in the |C⟩ state.
     // The state of the qubit at the end of the operation does not matter.
+    // You can use extra qubit(s) in your solution.
     // Note: in this task you have to succeed with probability 1, i.e., you are never allowed
     //       to give an incorrect answer.
     operation IsQubitNotInABC (q : Qubit) : Int {

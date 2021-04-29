@@ -10,20 +10,18 @@
 namespace Quantum.Kata.SimonsAlgorithm {
     
     open Microsoft.Quantum.Diagnostics;
+    open Microsoft.Quantum.Arrays;
     
     
     // ------------------------------------------------------
-    operation ApplyOracleA (qs : Qubit[], oracle : ((Qubit[], Qubit) => Unit is Adj)) : Unit
-    is Adj {        
-        let N = Length(qs);
-        oracle(qs[0 .. N - 2], qs[N - 1]);
+    operation ApplyOracleA (qs : Qubit[], oracle : ((Qubit[], Qubit) => Unit is Adj)) : Unit is Adj {        
+        oracle(Most(qs), Tail(qs));
     }
     
     
-    operation ApplyOracleWithOutputArrA (qs : Qubit[], oracle : ((Qubit[], Qubit[]) => Unit is Adj), outputSize : Int) : Unit
-    is Adj {
+    operation ApplyOracleWithOutputArrA (qs : Qubit[], oracle : ((Qubit[], Qubit[]) => Unit is Adj), outputSize : Int) : Unit is Adj {
         let N = Length(qs);
-        oracle(qs[0 .. (N - 1) - outputSize], qs[N - outputSize .. N - 1]);
+        oracle(qs[0 .. (N - 1) - outputSize], qs[N - outputSize ...]);
     }
     
     
@@ -35,7 +33,7 @@ namespace Quantum.Kata.SimonsAlgorithm {
         let sol = ApplyOracleA(_, oracle1);
         let refSol = ApplyOracleA(_, oracle2);
         
-        for (i in nQubits) {
+        for i in nQubits {
             AssertOperationsEqualReferenced(i+1, sol, refSol);
         }
     }
@@ -53,14 +51,16 @@ namespace Quantum.Kata.SimonsAlgorithm {
     
     
     // ------------------------------------------------------
-    operation Q11_Oracle_CountBits_Test () : Unit {
+    @Test("QuantumSimulator")
+    operation Q11_Oracle_CountBits () : Unit {
         AssertTwoOraclesAreEqual(1 .. 10, Oracle_CountBits, Oracle_CountBits_Reference);
     }
     
     
     // ------------------------------------------------------
-    operation Q12_Oracle_BitwiseRightShift_Test () : Unit {
-        for (n in 2 .. 6) {
+    @Test("QuantumSimulator")
+    operation Q12_Oracle_BitwiseRightShift () : Unit {
+        for n in 2 .. 6 {
             AssertTwoOraclesWithOutputArrAreEqual(n, n, Oracle_BitwiseRightShift, Oracle_BitwiseRightShift_Reference);
         }
     }
@@ -71,21 +71,21 @@ namespace Quantum.Kata.SimonsAlgorithm {
         AssertTwoOraclesAreEqual(Length(A) .. Length(A), oracle1(_, _, A), oracle2(_, _, A));
     }
     
-    
-    operation Q13_Oracle_OperatorOutput_Test () : Unit {
+    @Test("QuantumSimulator")
+    operation Q13_Oracle_OperatorOutput () : Unit {
         // cross-tests
         // the mask for all 1's should behave the same as Oracle_CountBits
-        mutable A = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+        mutable A = ConstantArray(11, 1);
         let L = Length(A);
         
-        for (i in 2 .. L) {
+        for i in 2 .. L {
             AssertTwoOraclesAreEqual(i .. i, Oracle_OperatorOutput(_, _, A[0 .. i - 1]), Oracle_OperatorOutput_Reference(_, _, A[0 .. i - 1]));
         }
         
         set A = [1, 1, 0, 0];
         AssertTwoOraclesWithIntArrAreEqual(A, Oracle_OperatorOutput, Oracle_OperatorOutput_Reference);
 
-        set A = [0, 0, 0, 0, 0];
+        set A = ConstantArray(5, 0);
         AssertTwoOraclesWithIntArrAreEqual(A, Oracle_OperatorOutput, Oracle_OperatorOutput_Reference);
 
         set A = [1, 0, 1, 1, 1];
@@ -116,8 +116,8 @@ namespace Quantum.Kata.SimonsAlgorithm {
         AssertOperationsEqualReferenced(inputSize + 1, sol, refSol);
     }
     
-    
-    operation Q14_Oracle_MultidimensionalOperatorOutput_Test () : Unit {
+    @Test("QuantumSimulator")
+    operation Q14_Oracle_MultidimensionalOperatorOutput () : Unit {
         
         mutable A = [[1, 1], [0, 0]];
         AssertTwoOraclesWithIntMatrixAreEqual(A, Oracle_MultidimensionalOperatorOutput, Oracle_MultidimensionalOperatorOutput_Reference);
@@ -137,23 +137,22 @@ namespace Quantum.Kata.SimonsAlgorithm {
         AssertTwoOraclesWithDifferentOutputsAreEqual(5, Oracle_MultidimensionalOperatorOutput(_, _, [B]), Oracle_OperatorOutput_Reference(_, _, B));
         
         // cross-test for bit counting oracle
-        set B = [1, 1, 1, 1, 1];
+        set B = ConstantArray(5, 1);
         AssertTwoOraclesWithDifferentOutputsAreEqual(5, Oracle_MultidimensionalOperatorOutput(_, _, [B]), Oracle_CountBits_Reference);
     }
     
-    
-    operation Q21_StatePrep_Test () : Unit {
-        for (N in 1 .. 10) {
-            using (qs = Qubit[N]) {
-                // apply operation that needs to be tested
-                SA_StatePrep(qs[0 .. N - 1]);
+    @Test("QuantumSimulator")
+    operation Q21_StatePrep () : Unit {
+        for N in 1 .. 10 {
+            use qs = Qubit[N];
+            // apply operation that needs to be tested
+            SA_StatePrep(qs);
                 
-                // apply adjoint reference operation
-                Adjoint SA_StatePrep_Reference(qs[0 .. N - 1]);
+            // apply adjoint reference operation
+            Adjoint SA_StatePrep_Reference(qs);
                 
-                // assert that all qubits end up in |0⟩ state
-                AssertAllZero(qs);
-            }
+            // assert that all qubits end up in |0⟩ state
+            AssertAllZero(qs);
         }
     }
     

@@ -10,6 +10,7 @@
 
 namespace Quantum.Kata.Measurements {
 
+    open Microsoft.Quantum.Diagnostics;
     open Microsoft.Quantum.Measurement;
     open Microsoft.Quantum.Arithmetic;
     open Microsoft.Quantum.Intrinsic;
@@ -17,6 +18,8 @@ namespace Quantum.Kata.Measurements {
     open Microsoft.Quantum.Math;
     open Microsoft.Quantum.Convert;
     open Microsoft.Quantum.Arrays;
+    open Microsoft.Quantum.Logical;
+    open Microsoft.Quantum.Random;
 
 
     //////////////////////////////////////////////////////////////////
@@ -87,8 +90,7 @@ namespace Quantum.Kata.Measurements {
     //         3 if they were in |11⟩ state.
     // The state of the qubits at the end of the operation does not matter.
     operation BasisStateMeasurement_Reference (qs : Qubit[]) : Int {
-        // Measurement on the first qubit gives the higher bit of the answer, on the second - the lower.
-        // You can also use library function MeasureIntegerBE to get the same result.
+        // Measurement on the first qubit gives the higher bit of the answer, on the second - the lower
         let m1 = M(qs[0]) == Zero ? 0 | 1;
         let m2 = M(qs[1]) == Zero ? 0 | 1;
         return m1 * 2 + m2;
@@ -110,7 +112,7 @@ namespace Quantum.Kata.Measurements {
     // Example: for bit strings [false, true, false] and [false, false, true]
     //          return 0 corresponds to state |010⟩, and return 1 corresponds to state |001⟩.
     function FindFirstDiff_Reference (bits1 : Bool[], bits2 : Bool[]) : Int {
-        for (i in 0 .. Length(bits1) - 1) {
+        for i in 0 .. Length(bits1) - 1 {
             if (bits1[i] != bits2[i]) {
                 return i;
             }
@@ -120,6 +122,9 @@ namespace Quantum.Kata.Measurements {
 
 
     operation TwoBitstringsMeasurement_Reference (qs : Qubit[], bits1 : Bool[], bits2 : Bool[]) : Int {
+        Fact(Length(bits1) == Length(bits2), "Bit arrays should have the same length");
+        Fact(Length(qs) == Length(bits1), "Arrays should have the same length");
+
         // find the first index at which the bit strings are different and measure it
         let firstDiff = FindFirstDiff_Reference(bits1, bits2);
         let res = M(qs[firstDiff]) == One;
@@ -130,16 +135,16 @@ namespace Quantum.Kata.Measurements {
 
     // Task 1.8. Distinguish two superposition states given by two arrays of bit strings - 1 measurement
     function FindFirstSuperpositionDiff_Reference (bits1 : Bool[][], bits2 : Bool[][], Nqubits : Int) : Int {
-        for (i in 0 .. Nqubits - 1) {
+        for i in 0 .. Nqubits - 1 {
             // count the number of 1s in i-th position in bit strings of both arrays
             mutable val1 = 0;
             mutable val2 = 0;
-            for (j in 0 .. Length(bits1) - 1) {
+            for j in 0 .. Length(bits1) - 1 {
                 if (bits1[j][i]) {
                     set val1 += 1;
                 }
             }
-            for (k in 0 .. Length(bits2) - 1) {
+            for k in 0 .. Length(bits2) - 1 {
                 if (bits2[k][i]) {
                     set val2 += 1;
                 }
@@ -153,6 +158,9 @@ namespace Quantum.Kata.Measurements {
     }
 
     operation SuperpositionOneMeasurement_Reference (qs : Qubit[], bits1 : Bool[][], bits2 : Bool[][]) : Int {
+        Fact(Length(bits1[0]) == Length(bits2[0]), "Second dimension of bit arrays should have the same length");
+        Fact(Length(bits1[0]) == Length(qs), "Second dimension of bit arrays should be equal to number of qubits");
+
         // find the position in which the bit strings of two arrays differ
         let diff = FindFirstSuperpositionDiff_Reference(bits1, bits2, Length(qs));
 
@@ -166,24 +174,32 @@ namespace Quantum.Kata.Measurements {
         }
     }
 
-
     // Task 1.9. Distinguish two superposition states given by two arrays of bit strings
+    operation SuperpositionMeasurement_Reference (qs : Qubit[], bits1 : Bool[][], bits2 : Bool[][]) : Int {
+        Fact(Length(bits1[0]) == Length(bits2[0]), "Second dimension of bit arrays should have the same length");
+        Fact(Length(bits1[0]) == Length(qs), "Second dimension of bit arrays should be equal to number of qubits");
 
-    function AreBitstringsEqual (bits1 : Bool[], bits2 : Bool[]) : Bool {
-        for (i in 0.. Length(bits1) - 1) {
-            if (bits1[i] != bits2[i]) {
-                return false;
+        // measure all qubits and check in which array you can find the resulting bit string
+        let meas = ResultArrayAsBoolArray(MultiM(qs));
+        for i in 0 .. Length(bits1) - 1 {
+            if (EqualA(EqualB, bits1[i], meas)) {
+                return 0;
             }
         }
-        return true;
+        return 1;
     }
 
 
-    operation SuperpositionMeasurement_Reference (qs : Qubit[], bits1 : Bool[][], bits2 : Bool[][]) : Int {
-        // measure all qubits and check in which array you can find the resulting bit string
-        let meas = ResultArrayAsBoolArray (MultiM(qs));
-        for (i in 0 .. Length(bits1) - 1) {
-            if (AreBitstringsEqual(bits1[i], meas)) {
+    // Alternate reference implementation for task 1.9
+    // Slightly more expensive, but uses built-in functions
+    operation SuperpositionMeasurement_Alternate (qs : Qubit[], bits1 : Bool[][], bits2 : Bool[][]) : Int {
+        Fact(Length(bits1[0]) == Length(bits2[0]), "Second dimension of bit Arrays should have the same length");
+        Fact(Length(bits1[0]) == Length(qs), "Second dimension of bit Arrays should be equal to number of qubits");
+
+        // measure all qubits and, treating the result as an integer, check whether it can be found in one of the bit arrays
+        let measuredState = ResultArrayAsInt(MultiM(qs));
+        for s in bits1 {
+            if (BoolArrayAsInt(s) == measuredState) {
                 return 0;
             }
         }
@@ -203,7 +219,7 @@ namespace Quantum.Kata.Measurements {
         // (and there should never be two or more Ones)
         mutable countOnes = 0;
 
-        for (q in qs) {
+        for q in qs {
             if (M(q) == One) {
                 set countOnes += 1;
             }
@@ -213,6 +229,14 @@ namespace Quantum.Kata.Measurements {
             fail "Impossible to get multiple Ones when measuring W state";
         }
         return countOnes == 0 ? 0 | 1;
+    }
+
+
+    // Alternate reference implementation for task 1.10
+    operation AllZerosOrWState_Alternate (qs : Qubit[]) : Int {
+        // measure all qubits and convert the result into an integer;
+        // if we get 0 then the state is |0...0⟩, any non-0 integer indicates W state
+        return ResultArrayAsInt(MultiM(qs)) == 0 ? 0 | 1;
     }
 
 
@@ -229,7 +253,7 @@ namespace Quantum.Kata.Measurements {
         // (and there should never be a different number of Ones)
         mutable countOnes = 0;
 
-        for (q in qs) {
+        for q in qs {
             if (M(q) == One) {
                 set countOnes += 1;
             }
@@ -240,6 +264,15 @@ namespace Quantum.Kata.Measurements {
             fail $"Impossible to get {countOnes} Ones when measuring W state or GHZ state on {N} qubits";
         }
         return countOnes == 1 ? 1 | 0;
+    }
+
+
+    // Alternate reference implementation for task 1.11
+    operation GHZOrWState_Alternate (qs : Qubit[]) : Int {
+        // measure all qubits and convert the measurement results into an integer;
+        // measuring GHZ state will produce either a 0...0 result or a 1...1 result, which correspond to integers 0 and 2ᴺ-1, respectively
+        let m = ResultArrayAsInt(MultiM(qs));
+        return (m == 0 or m == (1 <<< Length(qs))-1) ? 0 | 1;
     }
 
 
@@ -255,17 +288,15 @@ namespace Quantum.Kata.Measurements {
     //         3 if they were in |Ψ⁻⟩ state.
     // The state of the qubits at the end of the operation does not matter.
     operation BellState_Reference (qs : Qubit[]) : Int {
+        CNOT(qs[0], qs[1]);
         H(qs[0]);
-        H(qs[1]);
-        CNOT(qs[1], qs[0]);
-        H(qs[1]);
 
         // these changes brought the state back to one of the 2-qubit basis states from task 1.6 (but in different order)
         let m1 = M(qs[0]) == Zero ? 0 | 1;
-        let  m2 = M(qs[1]) == Zero ? 0 | 1;
+        let m2 = M(qs[1]) == Zero ? 0 | 1;
         return m2 * 2 + m1;
     }
-
+    
 
     // Task 1.13. Distinguish four orthogonal 2-qubit states
     // Input: two qubits (stored in an array) which are guaranteed to be in one of the four orthogonal states:
@@ -321,19 +352,6 @@ namespace Quantum.Kata.Measurements {
         return m2 * 2 + m1;
     }
 
-    // Helper function to implement diag(-1, 1, 1, 1) for the alternate solution to 1.14
-    operation ApplyDiag (qs : Qubit[]) : Unit {
-
-        body (...) {
-            ApplyToEach(X, qs);
-            Controlled Z([qs[0]], qs[1]);
-            ApplyToEach(X, qs);
-        }
-
-        adjoint self;
-    }
-
-
     // Alternate reference implementation for Task 1.14
     operation TwoQubitStatePartTwo_Alternate (qs : Qubit[]) : Int {
 
@@ -347,7 +365,11 @@ namespace Quantum.Kata.Measurements {
         SWAP(qs[0], qs[1]);
 
         // Apply diag(..) (H ⊗ H) diag(..)
-        With(ApplyDiag, ApplyToEach(H, _), qs);
+        within {
+            ApplyDiagonalUnitary([PI(), 0.0, 0.0, 0.0], LittleEndian(qs));
+        } apply {
+            ApplyToEach(H, qs);
+        }
         return BasisStateMeasurement_Reference(qs);
     }
 
@@ -385,11 +407,10 @@ namespace Quantum.Kata.Measurements {
         Adjoint WState_Arbitrary_Reference(qs);
 
         // need one qubit to store result of comparison "000" vs "not 000"
-        using (anc = Qubit()) {
-            // compute the OR function into anc
-            (ControlledOnInt(0, X))(qs, anc);
-            set result = MResetZ(anc) == One ? 0 | 1;
-        }
+        use anc = Qubit();
+        // compute the OR function into anc
+        (ControlledOnInt(0, X))(qs, anc);
+        set result = MResetZ(anc) == One ? 0 | 1;
 
         // Fix up the state so that it is identical to the input state
         // (this is not required if the state of the qubits after the operation does not matter)
@@ -495,7 +516,7 @@ namespace Quantum.Kata.Measurements {
         //   |+⟩ |   std |     0    |    1/2   |    1/2
         //   |0⟩ |   had |    1/2   |     0    |    1/2
         //   |+⟩ |   had |     0    |     0    |     1
-        let basis = RandomInt(2);
+        let basis = DrawRandomInt(0, 1);
 
         // randomize over std and had
         if (basis == 0) {
@@ -544,36 +565,35 @@ namespace Quantum.Kata.Measurements {
         // the final resulting circuit without additional commentary.
         let alpha = ArcCos(Sqrt(2.0 / 3.0));
 
-        using (a = Qubit()) {
-            Z(q);
-            CNOT(a, q);
-            Controlled H([q], a);
-            S(a);
-            X(q);
+        use a = Qubit();
+        Z(q);
+        CNOT(a, q);
+        Controlled H([q], a);
+        S(a);
+        X(q);
 
-            (ControlledOnInt(0, Ry))([a], (-2.0 * alpha, q));
-            CNOT(a, q);
-            Controlled H([q], a);
-            CNOT(a, q);
+        (ControlledOnInt(0, Ry))([a], (-2.0 * alpha, q));
+        CNOT(a, q);
+        Controlled H([q], a);
+        CNOT(a, q);
 
-            // finally, measure in the standard basis
-            let res0 = MResetZ(a);
-            let res1 = M(q);
+        // finally, measure in the standard basis
+        let res0 = MResetZ(a);
+        let res1 = M(q);
 
-            // dispatch on the cases
-            if (res0 == Zero and res1 == Zero) {
-                return 0;
-            }
-            elif (res0 == One and res1 == Zero) {
-                return 1;
-            }
-            elif (res0 == Zero and res1 == One) {
-                return 2;
-            }
-            else {
-                // this should never occur
-                return 3;
-            }
+        // dispatch on the cases
+        if (res0 == Zero and res1 == Zero) {
+            return 0;
+        }
+        elif (res0 == One and res1 == Zero) {
+            return 1;
+        }
+        elif (res0 == Zero and res1 == One) {
+            return 2;
+        }
+        else {
+            // this should never occur
+            return 3;
         }
     }
 }

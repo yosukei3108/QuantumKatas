@@ -22,9 +22,11 @@ function Build-One {
     $script:all_ok = ($LastExitCode -eq 0) -and $script:all_ok
 }
 
-Get-ChildItem (Join-Path $PSScriptRoot '..') -Recurse -Include '*.sln' `
-    | ForEach-Object { Build-One $_.FullName }
+Write-Host "Building Katas binaries:"
+
+Build-One '..\utilities\DumpUnitary\DumpUnitary.sln'
+Build-One '..\utilities\Microsoft.Quantum.Katas\Microsoft.Quantum.Katas.sln'
 
 if (-not $all_ok) {
-    throw "At least one test failed execution. Check the logs."
+    throw "At least one project failed building. Check the logs."
 }

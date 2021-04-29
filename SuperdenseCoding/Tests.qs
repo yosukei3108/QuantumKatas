@@ -14,19 +14,18 @@ namespace Quantum.Kata.SuperdenseCoding {
     
     
     // ------------------------------------------------------
-        
-    operation T1_CreateEntangledPair_Test () : Unit {
-        using ((q1, q2) = (Qubit(), Qubit())) {
+    @Test("QuantumSimulator")    
+    operation T1_CreateEntangledPair () : Unit {
+        use (q1, q2) = (Qubit(), Qubit());
 
-            // apply operation that needs to be tested
-            CreateEntangledPair(q1, q2);
+        // apply operation that needs to be tested
+        CreateEntangledPair(q1, q2);
 
-            // apply adjoint reference operation and check that the result is |0^N⟩
-            Adjoint CreateEntangledPair_Reference(q1, q2);
+        // apply adjoint reference operation and check that the result is |0^N⟩
+        Adjoint CreateEntangledPair_Reference(q1, q2);
 
-            // assert that all qubits end up in |0⟩ state
-            AssertAllZero([q1, q2]);
-        }
+        // assert that all qubits end up in |0⟩ state
+        AssertAllZero([q1, q2]);
     }
     
     
@@ -39,11 +38,10 @@ namespace Quantum.Kata.SuperdenseCoding {
 		message : ProtocolMessage
 	) : ProtocolMessage {
         
-        using (qs = Qubit[2]) {
-            CreateEntangledPair_Reference(qs[0], qs[1]);
-            encodeOp(qs[0], message);
-            return decodeOp(qs[0], qs[1]);            
-        }
+        use qs = Qubit[2];
+        CreateEntangledPair_Reference(qs[0], qs[1]);
+        encodeOp(qs[0], message);
+        return decodeOp(qs[0], qs[1]);
     }
     
     
@@ -53,10 +51,10 @@ namespace Quantum.Kata.SuperdenseCoding {
     operation TestProtocol (protocolOp : (ProtocolMessage => ProtocolMessage)) : Unit {
         
         // Loop over the 4 possible combinations of two bits
-        for (n in 0 .. 3) {
+        for n in 0 .. 3 {
             let data = ProtocolMessage(1 == n / 2, 1 == n % 2);
             
-            for (iter in 1 .. 100) {
+            for iter in 1 .. 100 {
                 let result = protocolOp(data);
                 
                 // Now test if the bits were transfered correctly.
@@ -66,18 +64,18 @@ namespace Quantum.Kata.SuperdenseCoding {
         }
     }
     
-    
-    operation T2_EncodeMessageInQubit_Test () : Unit {
+    @Test("QuantumSimulator")
+    operation T2_EncodeMessageInQubit () : Unit {
         TestProtocol(ComposeProtocol(EncodeMessageInQubit, DecodeMessageFromQubits_Reference, _));
     }
     
-    
-    operation T3_DecodeMessageFromQubits_Test () : Unit {
+    @Test("QuantumSimulator")
+    operation T3_DecodeMessageFromQubits () : Unit {
         TestProtocol(ComposeProtocol(EncodeMessageInQubit_Reference, DecodeMessageFromQubits, _));
     }
     
-    
-    operation T4_SuperdenseCodingProtocol_Test () : Unit {
+    @Test("QuantumSimulator")
+    operation T4_SuperdenseCodingProtocol () : Unit {
         TestProtocol(SuperdenseCodingProtocol);
     }
     

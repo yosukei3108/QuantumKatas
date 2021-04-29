@@ -4,6 +4,7 @@
 namespace Quantum.Kata.Superposition {
 
     open Microsoft.Quantum.Diagnostics;
+    open Microsoft.Quantum.Arrays;
     open Microsoft.Quantum.Intrinsic;
     open Microsoft.Quantum.Canon;
     open Microsoft.Quantum.Convert;
@@ -28,19 +29,23 @@ namespace Quantum.Kata.Superposition {
 
     // The tasks are given in approximate order of increasing difficulty; harder ones are marked with asterisks.
 
-    // Task 1. Plus state
+    //////////////////////////////////////////////////////////////////
+    // Part I. Simple Gates
+    //////////////////////////////////////////////////////////////////
+
+    // Task 1.1. Plus state
     // Input: a qubit in the |0⟩ state.
     // Goal: prepare a |+⟩ state on this qubit (|+⟩ = (|0⟩ + |1⟩) / sqrt(2)).
     operation PlusState (q : Qubit) : Unit {
         // Hadamard gate H will convert |0⟩ state to |+⟩ state.
         // Type the following: H(q);
-        // Then rebuild the project and rerun the tests - T01_PlusState_Test should now pass!
+        // Then rebuild the project and rerun the tests - T01_PlusState should now pass!
 
         // ...
     }
 
 
-    // Task 2. Minus state
+    // Task 1.2. Minus state
     // Input: a qubit in the |0⟩ state.
     // Goal: prepare a |-⟩ state on this qubit (|-⟩ = (|0⟩ - |1⟩) / sqrt(2)).
     operation MinusState (q : Qubit) : Unit {
@@ -50,45 +55,40 @@ namespace Quantum.Kata.Superposition {
     }
 
 
-    // Task 3*. Unequal superposition
-    // Inputs:
-    //      1) a qubit in the |0⟩ state.
-    //      2) angle alpha, in radians, represented as Double.
-    // Goal: prepare a cos(alpha) * |0⟩ + sin(alpha) * |1⟩ state on this qubit.
-    operation UnequalSuperposition (q : Qubit, alpha : Double) : Unit {
-        // Hint: Experiment with rotation gates from the Microsoft.Quantum.Intrinsic namespace.
-        // Note that all rotation operators rotate the state by _half_ of its angle argument.
-
-        // ...
-    }
-
-
-    // Task 4. Superposition of all basis vectors on two qubits
+    // Task 1.3. Superposition of all basis vectors on two qubits
     // Input: two qubits in |00⟩ state (stored in an array of length 2).
     // Goal:  create the following state on these qubits: (|00⟩ + |01⟩ + |10⟩ + |11⟩) / 2.
     operation AllBasisVectors_TwoQubits (qs : Qubit[]) : Unit {
         // The following lines enforce the constraints on the input that you are given.
         // You don't need to modify them. Feel free to remove them, this won't cause your code to fail.
-        EqualityFactI(Length(qs), 2, "The array should have exactly 2 qubits.");
+        Fact(Length(qs) == 2, "The array should have exactly 2 qubits.");
 
         // ...
     }
 
 
-    // Task 5. Superposition of basis vectors with phases
+    // Task 1.4. Superposition of basis vectors with phase flip.
+    // Input: two qubits in |00⟩ state (stored in an array of length 2).
+    // Goal:  create the following state on these qubits: (|00⟩ + |01⟩ + |10⟩ - |11⟩) / 2.
+    operation AllBasisVectorWithPhaseFlip_TwoQubits (qs : Qubit[]) : Unit {
+        // ...
+    }
+
+
+    // Task 1.5. Superposition of basis vectors with phases
     // Input: two qubits in |00⟩ state (stored in an array of length 2).
     // Goal:  create the following state on these qubits: (|00⟩ + i*|01⟩ - |10⟩ - i*|11⟩) / 2.
     operation AllBasisVectorsWithPhases_TwoQubits (qs : Qubit[]) : Unit {
         // The following lines enforce the constraints on the input that you are given.
         // You don't need to modify them. Feel free to remove them, this won't cause your code to fail.
-        EqualityFactI(Length(qs), 2, "The array should have exactly 2 qubits.");
+        Fact(Length(qs) == 2, "The array should have exactly 2 qubits.");
 
         // Hint: Is this state separable?
         // ...
     }
 
 
-    // Task 6. Bell state
+    // Task 1.6. Bell state
     // Input: two qubits in |00⟩ state (stored in an array of length 2).
     // Goal: create a Bell state |Φ⁺⟩ = (|00⟩ + |11⟩) / sqrt(2) on these qubits.
     operation BellState (qs : Qubit[]) : Unit {
@@ -96,7 +96,7 @@ namespace Quantum.Kata.Superposition {
     }
 
 
-    // Task 7. All Bell states
+    // Task 1.7. All Bell states
     // Inputs:
     //      1) two qubits in |00⟩ state (stored in an array of length 2)
     //      2) an integer index
@@ -110,7 +110,7 @@ namespace Quantum.Kata.Superposition {
     }
 
 
-    // Task 8. Greenberger–Horne–Zeilinger state
+    // Task 1.8. Greenberger–Horne–Zeilinger state
     // Input: N qubits in |0...0⟩ state.
     // Goal: create a GHZ state (|0...0⟩ + |1...1⟩) / sqrt(2) on these qubits.
     operation GHZ_State (qs : Qubit[]) : Unit {
@@ -120,7 +120,7 @@ namespace Quantum.Kata.Superposition {
     }
 
 
-    // Task 9. Superposition of all basis vectors
+    // Task 1.9. Superposition of all basis vectors
     // Input: N qubits in |0...0⟩ state.
     // Goal: create an equal superposition of all basis vectors from |0...0⟩ to |1...1⟩
     // (i.e. state (|0...0⟩ + ... + |1...1⟩) / sqrt(2^N) ).
@@ -129,7 +129,7 @@ namespace Quantum.Kata.Superposition {
     }
 
 
-    // Task 10. Superposition of all even or all odd numbers
+    // Task 1.10. Superposition of all even or all odd numbers
     // Inputs:
     //      1) N qubits in |0...0⟩ state.
     //      2) A boolean isEven.
@@ -144,25 +144,9 @@ namespace Quantum.Kata.Superposition {
     operation EvenOddNumbersSuperposition (qs : Qubit[], isEven : Bool) : Unit {
         // ...
     }
+    
 
-
-    // Task 11. |00⟩ + |01⟩ + |10⟩ state
-    // Input: 2 qubits in |00⟩ state.
-    // Goal: create the state (|00⟩ + |01⟩ + |10⟩) / sqrt(3) on these qubits.
-    operation ThreeStates_TwoQubits (qs : Qubit[]) : Unit {
-        // ...
-    }
-
-
-    // Task 12*. Hardy State
-    // Input: 2 qubits in |00⟩ state
-    // Goal: create the state (3|00⟩ + |01⟩ + |10⟩ + |11⟩) / sqrt(12) on these qubits.
-    operation Hardy_State (qs : Qubit[]) : Unit {
-        // ...
-    }
-
-
-    // Task 13. Superposition of |0...0⟩ and given bit string
+    // Task 1.11. Superposition of |0...0⟩ and given bit string
     // Inputs:
     //      1) N qubits in |0...0⟩ state
     //      2) bit string represented as Bool[]
@@ -174,14 +158,14 @@ namespace Quantum.Kata.Superposition {
     operation ZeroAndBitstringSuperposition (qs : Qubit[], bits : Bool[]) : Unit {
         // The following lines enforce the constraints on the input that you are given.
         // You don't need to modify them. Feel free to remove them, this won't cause your code to fail.
-        EqualityFactI(Length(bits), Length(qs), "Arrays should have the same length");
-        EqualityFactB(bits[0], true, "First bit of the input bit string should be set to true");
+        Fact(Length(bits) == Length(qs), "Arrays should have the same length");
+        Fact(Head(bits), "First bit of the input bit string should be set to true");
 
         // ...
     }
 
 
-    // Task 14. Superposition of two bit strings
+    // Task 1.12. Superposition of two bit strings
     // Inputs:
     //      1) N qubits in |0...0⟩ state
     //      2) two bit string represented as Bool[]s
@@ -197,11 +181,11 @@ namespace Quantum.Kata.Superposition {
     }
 
 
-    // Task 15*. Superposition of four bit strings
+    // Task 1.13*. Superposition of four bit strings
     // Inputs:
     //      1) N qubits in |0...0⟩ state
     //      2) four bit string represented as Bool[][] bits
-    //         bits is an array of size 4 x N which describes the bit strings as follows:
+    //         bits is an array of size 4 x N array which describes the bit strings as follows:
     //         bits[i] describes the i-th bit string and has N elements.
     //         All four bit strings will be distinct.
     //
@@ -216,7 +200,73 @@ namespace Quantum.Kata.Superposition {
     }
 
 
-    // Task 16**. W state on 2ᵏ qubits
+    // Task 1.14. Superposition of all bit strings of the given parity
+    // Inputs:
+    //      1) N qubits in |0..0⟩ state (stored in an array of length N).
+    //      2) An int "parity".
+    // Goal: change the state to an equal superposition of all basis states that have
+    //       an even number of 1s in them if "parity" = 0, or
+    //       an odd number of 1s in them if "parity" = 1.
+    // Example: for N = 2, the goal state would be (|00⟩ + |11⟩) / sqrt(2) if "parity" = 0,
+    //       and (|01⟩ + |10⟩) / sqrt(2) if "parity" = 1.
+    operation AllStatesWithParitySuperposition (qs : Qubit[], parity : Int) : Unit {
+        // Hint: remember that you can call the solution recursively.
+        //       You are allowed to modify the signature of the method to include adjoint and/or controlled variants.
+
+        // ...
+    }
+
+
+    //////////////////////////////////////////////////////////////////
+    // Part II. Arbitrary Rotations
+    //////////////////////////////////////////////////////////////////
+
+    // Task 2.1. Unequal superposition
+    // Inputs:
+    //      1) a qubit in the |0⟩ state.
+    //      2) angle alpha, in radians, represented as Double.
+    // Goal: prepare a cos(alpha) * |0⟩ + sin(alpha) * |1⟩ state on this qubit.
+    operation UnequalSuperposition (q : Qubit, alpha : Double) : Unit {
+        // Hint: Experiment with rotation gates from the Microsoft.Quantum.Intrinsic namespace.
+        // Note that all rotation operators rotate the state by _half_ of its angle argument.
+
+        // ...
+    }
+
+
+    // Task 2.2. 1/sqrt(2)|00⟩ + 1/2|01⟩ + 1/2|10⟩ state
+    // Input: two qubits in |00⟩ state (stored in an array of length 2).
+    // Goal: change the state to 1/sqrt(2)|00⟩ + 1/2|10⟩ + 1/2|11⟩.
+    operation ControlledRotation (qs : Qubit[]) : Unit {
+        //...
+    }
+
+
+    // Task 2.3*. |00⟩ + |01⟩ + |10⟩ state
+    // Input: 2 qubits in |00⟩ state (stored in an array of length 2).
+    // Goal: change the state to (|00⟩ + |01⟩ + |10⟩) / sqrt(3).
+    operation ThreeStates_TwoQubits (qs : Qubit[]) : Unit {
+        // ...
+    }
+
+
+    // Task 2.4*. (|00⟩ + ω |01⟩ + ω² |10⟩) / sqrt(3)
+    // Input: two qubits in |00⟩ state (stored in an array of length 2).
+    // Goal: change the state to (|00⟩ + ω |01⟩ + ω² |10⟩) / sqrt(3) where ω is exp(2πi/3).
+    operation ThreeStates_TwoQubits_Phases (qs : Qubit[]) : Unit {
+        // ...
+    }
+
+
+    // Task 2.5*. Hardy State
+    // Input: 2 qubits in |00⟩ state.
+    // Goal: create the state (3|00⟩ + |01⟩ + |10⟩ + |11⟩) / sqrt(12) on these qubits.
+    operation Hardy_State (qs : Qubit[]) : Unit {
+        // ...
+    }
+
+
+    // Task 2.6*. W state on 2ᵏ qubits
     // Input: N = 2ᵏ qubits in |0...0⟩ state.
     // Goal: create a W state (https://en.wikipedia.org/wiki/W_state) on these qubits.
     // W state is an equal superposition of all basis states on N qubits of Hamming weight 1.
@@ -228,7 +278,7 @@ namespace Quantum.Kata.Superposition {
     }
 
 
-    // Task 17**. W state on arbitrary number of qubits
+    // Task 2.7**. W state on arbitrary number of qubits
     // Input: N qubits in |0...0⟩ state (N is not necessarily a power of 2).
     // Goal: create a W state (https://en.wikipedia.org/wiki/W_state) on these qubits.
     // W state is an equal superposition of all basis states on N qubits of Hamming weight 1.
